@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+pillow = "*"
+django-cleanup = "*"
+django-allauth = "*"
+django-htmx = "*"
+django-environ = "*"
+psycopg2-binary = "*"
+django-tenants = "*"
+
+[dev-packages]
+django-browser-reload = "*"
+
+[requires]
+python_version = "3.12"
