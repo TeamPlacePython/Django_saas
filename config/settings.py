@@ -22,9 +22,32 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
 
 CSRF_TRUSTED_ORIGINS = ["https://*"]
 
-# Application definition
+BASE_URL = "localhost"
+PORT = ":8000"
 
-INSTALLED_APPS = [
+# Production
+# BASE_URL = "https://www.[domain_name]"
+# PORT = ""
+# SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+# SESSION_COOKIE_DOMAIN = "." + BASE_URL
+# SESSION_COOKIE_PATH = "/"
+
+if ENVIRONMENT == "production":
+    SECURE_BROWSER_XSS_FILTER = env("SECURE_BROWSER_XSS_FILTER")
+    X_FRAME_OPTIONS = env("X_FRAME_OPTIONS")
+    SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT")
+    SECURE_HSTS_SECONDS = env("SECURE_HSTS_SECONDS")
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env("SECURE_HSTS_INCLUDE_SUBDOMAINS")
+    SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD")
+    SECURE_CONTENT_TYPE_NOSNIFF = env("SECURE_CONTENT_TYPE_NOSNIFF")
+    SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE")
+    CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE")
+    SECURE_PROXY_SSL_HEADER = env("SECURE_PROXY_SSL_HEADER")
+
+# Application definition
+SHARED_APPS = [
+    "django_tenants",
+    "apps.tenant_manager.apps.TenantManagerConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,13 +61,22 @@ INSTALLED_APPS = [
     "allauth.account",
     "django_htmx",
     "apps.home.apps.HomeConfig",
-    "apps.tenant_manager.apps.TenantManagerConfig",
     "apps.users.apps.UsersConfig",
+]
+
+TENANT_APPS = [
+    "apps.home.apps.HomeConfig",
+    "apps.users.apps.UsersConfig",
+]
+
+INSTALLED_APPS = SHARED_APPS + [
+    app for app in TENANT_APPS if app not in SHARED_APPS
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -57,12 +89,19 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 ROOT_URLCONF = "config.urls"
+PUBLIC_SCHEMA_URLCONF = "config.urls_public"
+
+TENANT_MODEL = "tenant_manager.Tenant"
+TENANT_DOMAIN_MODEL = "tenant_manager.Domain"
+SHOW_PUBLIC_IF_NO_TENANT_FOUND = env("SHOW_PUBLIC_IF_NO_TENANT_FOUND")
 
 TEMPLATES = [
     {
@@ -96,10 +135,6 @@ if ENVIRONMENT == "development":
         }
     }
 
-
-TENANT_MODEL = "tenant_manager.Tenant"
-TENANT_DOMAIN_MODEL = "tenant_manager.Domain"
-SHOW_PUBLIC_IF_NO_TENANT_FOUND = env("SHOW_PUBLIC_IF_NO_TENANT_FOUND")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

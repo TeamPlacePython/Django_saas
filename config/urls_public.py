@@ -1,11 +1,13 @@
 from django.contrib import admin
-from django.urls import path
-from django.urls import include
+from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 
+from apps.tenant_manager.admin import tenant_admin_site
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("admin_tenants/", tenant_admin_site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
     path("accounts/", include("allauth.urls")),
     path("", include("apps.home.urls", namespace="home")),

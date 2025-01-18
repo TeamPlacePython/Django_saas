@@ -1,0 +1,83 @@
+{% extends 'layouts/blank.html' %}
+
+{% block content %} 
+
+    <div class="max-w-4xl mx-auto px-8 py-24">
+        <h1>Welcome to {{ request.tenant.name }}</h1>
+
+        {% if user.is_authenticated %}
+            <h2>Hello {{ user.profile.name }}{% if tenant_member.is_admin %} (Admin){% endif %}</h2>
+
+            {% if tenant_member %}
+            <p>Great to have you!</p>
+            {% endif %}
+            
+            <div class="flex gap-6 mt-8">
+                <div class="w-1/2">
+                    <form method="POST" action="{% url 'home:member-role' request.tenant.id %}">
+                        {% csrf_token %}
+
+                        <div x-data="{ selectedRole: '', open: false }" class="relative">
+                            <div @click="open = !open" class="flex items-center justify-between block w-full p-4 border border-gray-300 rounded-lg cursor-pointer">
+                                <span x-text="selectedRole ? selectedRole : 'My Role'"></span>
+                                <img x-bind:class="open && 'rotate-180 duration-300'" class="w-4" src="https://img.icons8.com/small/32/000000/expand-arrow.png" alt="Dropdown" />
+                            </div>
+                        
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                                <ul>
+                                    {% if member_roles %}
+                                        {% for key, label in member_roles %}
+                                        <li @click="selectedRole = '{{ label }}'; open = false" class="block px-4 py-2 hover:bg-indigo-500 hover:text-white cursor-pointer">
+                                            {{ label }}
+                                        </li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        
+                            <input type="hidden" name="role" x-model="selectedRole">
+                        </div>
+
+                        <button class="mt-2" type="submit">Submit</button>
+
+                    </form>
+                </div>
+
+                <div class="mb-6 w-1/2">
+
+                    {% if tenant_member %}
+                    <div class="p-4 border border-gray-300 rounded-lg">
+                        <div class="mb-6">
+                            <h2 class="mb-1">Managers</h2>
+                            {% for member in request.tenant.members.all %}
+                                {% if member.role == 'manager' %}
+                                    <a class="block hover:underline pl-4" href="{% url 'profile' member.user.username %}">{{ member.user.profile.name }} {% if member.is_admin %}(Admin){% endif %}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="mb-6">
+                            <h2 class="mb-1">Designers</h2>
+                            {% for member in request.tenant.members.all %}
+                                {% if member.role == 'designer' %}
+                                    <a class="block hover:underline pl-4" href="{% url 'profile' member.user.username %}">{{ member.user.profile.name }} {% if member.is_admin %}(Admin){% endif %}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <h2 class="mb-1">Programmers</h2>
+                            {% for member in request.tenant.members.all %}
+                                {% if member.role == 'programmer' %}
+                                    <a class="block hover:underline pl-4" href="{% url 'profile' member.user.username %}">{{ member.user.profile.name }} {% if member.is_admin %}(Admin){% endif %}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <button><a href="{% url 'account_login' %}">Log In</a></button>
+        {% endif %}
+    </div>
+
+{% endblock %}

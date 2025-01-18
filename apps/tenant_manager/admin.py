@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Tenant
+from .models import TenantMember
 from .models import Domain
 
 
@@ -8,6 +9,7 @@ class TenantAdminSite(admin.AdminSite):
         super().__init__(*args, **kwargs)
         self.register(Tenant)
         self.register(Domain)
+        self.register(TenantMember)
 
 
 tenant_admin_site = TenantAdminSite(name="tenant_admin_site")
